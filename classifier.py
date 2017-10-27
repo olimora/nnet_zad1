@@ -71,7 +71,6 @@ class MLPClassifier(MLP):
         REs = []
 
         for ep in range(eps):
-            print('Model {:1d}: Ep {:3d}/{}: '.format(model_num, ep+1, eps), end='')
             CE = 0
             RE = 0
 
@@ -93,7 +92,9 @@ class MLPClassifier(MLP):
             CEs.append(CE)
             REs.append(RE)
 
-            print('CE = {:6.2%}, RE = {:.5f}'.format(CE, RE))
+            if (ep+1) % 10 == 0:
+                print('Model {:1d}: Ep {:3d}/{}: '.format(model_num, ep+1, eps), end='')
+                print('CE = {:6.2%}, RE = {:.5f}'.format(CE, RE))
 
             if trace and ((ep+1) % trace_interval == 0):
                 clear()
