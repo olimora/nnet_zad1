@@ -8,11 +8,31 @@ from func import *
 
 class MLP():
 
-    def __init__(self, dims, functions):
-        assert len(dims)-1 == len(functions)
+    def __init__(self, dims, functions, distrib):
+        assume(len(dims)-1 == len(functions), 'Invalid number of functions.')
+        assume(all(f in {'sigmoid', 'sig', 'tanh', 'linear', 'lin', 'softmax'} for f in functions), 'Invalid function name.')
+        assume(distrib[0] in {'uniform', 'normal'}, 'Invalid distribution form.')
         self.nlayers = len(dims)
         self.dims = dims
-        self.func_switch = {
+        self.weights = self.initialize_weights(self.random_distrib(distrib[0]), distrib[1])
+        self.functions = list(self.assign_function(i) for i in functions)
+
+
+
+    def initialize_weights(self, distrib_func, distrib_scale):
+        return list(scale(normalize(distrib_func(self.dims[i + 1], self.dims[i] + 1)),
+                          distrib_scale[0], distrib_scale[1]) for i in range(self.nlayers - 1))
+
+    def random_distrib(self, d):
+        dist_switch = {
+            'uniform': np.random.rand,
+            'normal': np.random.randn,
+        }
+        return dist_switch.get(d, np.random.rand)
+
+
+    def assign_function(self, f):
+        func_switch = {
             'sigmoid': [logsig, dlogsig],
             'sig': [logsig, dlogsig],
             'tanh': [tanh, dtanh],
@@ -20,13 +40,7 @@ class MLP():
             'lin': [linear, dlinear],
             'softmax': [softmax, dsoftmax],
         }
-        self.functions = list(self.assign_function(i) for i in functions)
-        self.weights = list(np.random.rand(dims[i+1], dims[i]+1) for i in range(self.nlayers - 1))
-
-
-
-    def assign_function(self, f):
-        return self.func_switch.get(f, [logsig, logsig])
+        return func_switch.get(f, [logsig, logsig])
 
 
     ## forward pass
@@ -60,15 +74,15 @@ class MLP():
         for i in reversed(range(self.nlayers-1)):
             if i == self.nlayers-2 : #the last layer == output
                 gg = (d - y) * self.functions[i][1](ins[i])
-                dW = outs[i-1].reshape((1,-1)).T @ gg.reshape((1,-1))
+                dW = outs[i-1].reshape((1,-1)).T * gg.reshape((1,-1))
                 dWs.append(dW)
             elif i == 0 : #the first layer == input
                 gg = (gg.T @ self.weights[i+1][:,0:-1]) * self.functions[i][1](ins[i])
-                dW = augment(x).reshape((1,-1)).T @ gg.reshape((1,-1))
+                dW = augment(x).reshape((1,-1)).T * gg.reshape((1,-1))
                 dWs.append(dW)
             else : #the layers between
                 gg = (gg.T @ self.weights[i + 1][:, 0:-1]) * self.functions[i][1](ins[i])
-                dW = outs[i-1].reshape((1,-1)).T @ gg.reshape((1,-1))
+                dW = outs[i-1].reshape((1,-1)).T * gg.reshape((1,-1))
                 dWs.append(dW)
 
         return y, list(reversed(dWs))

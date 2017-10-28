@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # print(results)
 
     model = MLPClassifier([train_inputs.shape[0], 20, 6, np.max(train_labels) + 1],
-                          ['tanh', 'sig', 'lin'])
+                          ['tanh', 'sig', 'lin'], ['uniform', [0, 1]])
     trainCEs, trainREs = model.train(train_inputs, train_labels, alpha=0.05, eps=500,
                                      trace=True, trace_interval=10, model_num=0)
 

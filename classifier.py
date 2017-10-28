@@ -6,9 +6,9 @@ from util import *
 
 class MLPClassifier(MLP):
 
-    def __init__(self, dims, functions):
+    def __init__(self, dims, functions, distrib):
         self.n_classes = dims[-1]
-        super().__init__(dims, functions)
+        super().__init__(dims, functions, distrib)
 
 
     def cost(self, targets, outputs): # new
