@@ -15,6 +15,9 @@ class MLP():
         self.nlayers = len(dims)
         self.dims = dims
         self.weights = self.initialize_weights(self.random_distrib(distrib[0]), distrib[1])
+        self.best_weights = self.weights # weights from epoche with minimal validation error
+        self.best_error = 100
+        self.best_epoch = 0
         self.functions = list(self.assign_function(i) for i in functions)
 
 

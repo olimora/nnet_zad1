@@ -62,6 +62,12 @@ class MLPClassifier(MLP):
                 CE += labels[i] != onehot_decode(y)
                 RE += self.cost(d,y)
 
+                #early stopping - remembering the best weights # do before weights update?
+                if RE < self.best_error:
+                    self.best_epoch = ep
+                    self.best_error = RE
+                    self.best_weights = self.weights
+
                 for i in range(self.nlayers-1):
                     self.weights[i] += alpha*dWs[i].T
 
