@@ -1,6 +1,6 @@
 import numpy as np
-
 from util import *
+from func import *
 
 
 ## Multi-Layer Perceptron
@@ -8,53 +8,81 @@ from util import *
 
 class MLP():
 
-    def __init__(self, dim_in, dim_hid, dim_out):
-        self.dim_in     = dim_in
-        self.dim_hid    = dim_hid
-        self.dim_out    = dim_out
+    def __init__(self, dims, functions, distrib):
+        assume(len(dims)-1 == len(functions), 'Invalid number of functions.')
+        assume(all(f in {'sigmoid', 'sig', 'tanh', 'linear', 'lin', 'softmax'} for f in functions), 'Invalid function name.')
+        assume(distrib[0] in {'uniform', 'normal'}, 'Invalid distribution form.')
+        self.nlayers = len(dims)
+        self.dims = dims
+        self.weights = self.initialize_weights(self.random_distrib(distrib[0]), distrib[1])
+        self.functions = list(self.assign_function(i) for i in functions)
 
-        self.W_hid = np.random.rand(dim_hid, dim_in+1) # FIXME
-        self.W_out = np.random.rand(dim_out, dim_hid+1) # FIXME
 
 
-    ## activation functions & derivations
-    # (not implemented, to be overriden in derived classes)
+    def initialize_weights(self, distrib_func, distrib_scale):
+        return list(scale(normalize(distrib_func(self.dims[i + 1], self.dims[i] + 1)),
+                          distrib_scale[0], distrib_scale[1]) for i in range(self.nlayers - 1))
 
-    def f_hid(self, x):
-        pass 
+    def random_distrib(self, d):
+        dist_switch = {
+            'uniform': np.random.rand,
+            'normal': np.random.randn,
+        }
+        return dist_switch.get(d, np.random.rand)
 
-    def df_hid(self, x):
-        pass 
 
-    def f_out(self, x):
-        pass 
-
-    def df_out(self, x):
-        pass 
+    def assign_function(self, f):
+        func_switch = {
+            'sigmoid': [logsig, dlogsig],
+            'sig': [logsig, dlogsig],
+            'tanh': [tanh, dtanh],
+            'linear': [linear, dlinear],
+            'lin': [linear, dlinear],
+            'softmax': [softmax, dsoftmax],
+        }
+        return func_switch.get(f, [logsig, logsig])
 
 
     ## forward pass
     # (single input vector)
 
     def forward(self, x):
-        a = self.W_hid @ augment(x) # FIXME
-        h = augment(self.f_hid(a)) # FIXME
-        b = self.W_out @ h # FIXME
-        y = self.f_out(b) # FIXME
+        ins = []
+        outs = []
+        xx = augment(x)
+        for i in range(self.nlayers-1):
+            a = self.weights[i] @ xx
+            h = augment(self.functions[i][0](a))
+            xx = h
+            if i == self.nlayers-2:
+                h = h[:-1] # final layer outputs == predictions - remove bias (last one)
+            ins.append(a)
+            outs.append(h)
+        return ins, outs
 
-        return y, b, h, a
+
 
 
     ## forward & backprop pass
     # (single input and target vector)
 
     def backward(self, x, d):
-        y, b, h, a = self.forward(x)
+        ins, outs = self.forward(x)
+        y = outs[-1]
+        dWs = []
+        gg = None
+        for i in reversed(range(self.nlayers-1)):
+            if i == self.nlayers-2 : #the last layer == output
+                gg = (d - y) * self.functions[i][1](ins[i])
+                dW = outs[i-1].reshape((1,-1)).T * gg.reshape((1,-1))
+                dWs.append(dW)
+            elif i == 0 : #the first layer == input
+                gg = (gg.T @ self.weights[i+1][:,0:-1]) * self.functions[i][1](ins[i])
+                dW = augment(x).reshape((1,-1)).T * gg.reshape((1,-1))
+                dWs.append(dW)
+            else : #the layers between
+                gg = (gg.T @ self.weights[i + 1][:, 0:-1]) * self.functions[i][1](ins[i])
+                dW = outs[i-1].reshape((1,-1)).T * gg.reshape((1,-1))
+                dWs.append(dW)
 
-        g_out = (d - y) * self.df_out(b) # FIXME
-        g_hid = (g_out.T @ self.W_out[:,0:-1]) * self.df_hid(a) # FIXME
-
-        dW_out = h.reshape((1,-1)).T @ g_out.reshape((1,-1)) # FIXME
-        dW_hid = augment(x).reshape((1,-1)).T @ g_hid.reshape((1,-1)) # FIXME
-
-        return y, dW_hid, dW_out
+        return y, list(reversed(dWs))

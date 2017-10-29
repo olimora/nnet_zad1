@@ -6,13 +6,22 @@ matplotlib.use('TkAgg')  # todo: remove or change if not working
 import matplotlib.pyplot as plt
 import time
 
-# def labels_to_nums(labels):
-#     return [ord(c)-65 for c in labels]
+def assume(bool, msg):
+    if not bool :
+        raise Exception(msg)
+
+
+#mat must be normalized to [0 .. 1]
+def scale(mat, min, max):
+    return mat * (max - min) + min
+
+def normalize(mat):
+    return (mat - np.amin(mat)) / (np.amax(mat) - np.amin(mat))
 
 def labels_to_nums(labels):
     return ord(labels)-65
-
 labels_to_nums = np.vectorize(labels_to_nums)
+
 
 def plot_scatter(title, data_x, data_y, c):
     plt.scatter(data_x, data_y, c=c)

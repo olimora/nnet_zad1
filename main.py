@@ -23,7 +23,7 @@ def parallel_cross_validation(split_id, passed_data):
 
     ## train & validate
     # 2, 20, 3 = 2 vstupne hodnoty, 20 skrytych neuronov, 3 vystupne - pre kazdu classu jeden
-    model = MLPClassifier(estim_inputs.shape[0], 20, np.max(estim_labels) + 1)
+    model = MLPClassifier([estim_inputs.shape[0], 20, np.max(estim_labels) + 1])
     trainCEs, trainREs = model.train(estim_inputs, estim_labels, alpha=0.05, eps=50,
                                      trace=False, trace_interval=10, model_num=split_id)
     testCE, testRE = model.test(valid_inputs, valid_labels)
@@ -53,14 +53,24 @@ if __name__ == '__main__':
     ## cross validation ################################
 
     ## split to 10 sets
-    ind = np.arange(len(train_labels))
-    random.shuffle(ind)
-    split = np.array(np.split(ind, 10))
+    # ind = np.arange(len(train_labels))
+    # random.shuffle(ind)
+    # split = np.array(np.split(ind, 10))
 
     # removing processes argument makes the code run on all available cores
-    pool = mp.Pool(processes=4)
-    results = np.array(pool.starmap(parallel_cross_validation, zip(np.arange(10), repeat([split, train_inputs, train_labels]))))
-    print(results)
+    # pool = mp.Pool(processes=4)
+    # results = np.array(pool.starmap(parallel_cross_validation, zip(np.arange(10), repeat([split, train_inputs, train_labels]))))
+    # print(results)
+
+    model = MLPClassifier([train_inputs.shape[0], 20, 6, np.max(train_labels) + 1],
+                          ['tanh', 'sig', 'lin'], ['uniform', [0, 1]])
+    trainCEs, trainREs = model.train(train_inputs, train_labels, alpha=0.05, eps=500,
+                                     trace=True, trace_interval=10, model_num=0)
+
+    testCE, testRE = model.test(test_inputs, test_labels)
+    print('Final testing error: CE = {:6.2%}, RE = {:.5f}'.format(testCE, testRE))
+
+    plot_both_errors(trainCEs, trainREs, testCE, testRE, block=False)
 
 # ## iterate over them, pick 1 validation set and the rest for training
 # best_model = None
