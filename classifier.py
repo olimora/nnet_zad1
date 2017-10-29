@@ -48,6 +48,8 @@ class MLPClassifier(MLP):
 
         (_, count) = inputs.shape
         targets = onehot_encode(labels, self.n_classes)
+
+        assume(momentum >= 0 and momentum <=1, 'Invalid momentum.')
         last_dWs = list((np.zeros((self.dims[z + 1], self.dims[z] + 1)).T for z in range(self.nlayers - 1)))
 
         # assume(descent_type in {'online', 'mini-batch'}, 'Invalid descent type.')
