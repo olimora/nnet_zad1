@@ -6,13 +6,9 @@ from util import *
 
 class MLPClassifier(MLP):
 
-    def __init__(self, dims, functions, distrib,
-                 min_accuracy = 95, max_epoch = 500, q_size = 10, raised_err_threashold = 10, acc_err_threshold = 1,
-                 model_ID = -1):
+    def __init__(self, dims, functions, distrib, model_ID = -1):
         self.n_classes = dims[-1]
-        super().__init__(dims, functions, distrib,
-                         min_accuracy, max_epoch, q_size, raised_err_threashold, acc_err_threshold,
-                         model_ID)
+        super().__init__(dims, functions, distrib, model_ID)
 
 
     def cost(self, targets, outputs): # new
@@ -44,13 +40,25 @@ class MLPClassifier(MLP):
     ## training
 
     def train(self, inputs, labels, validation_inputs = None, validation_labels = None, #descent_type = 'online', batch_size = None,
-              alpha=0.1, momentum = 0, trace=False, trace_interval=10):
+              alpha=0.1, momentum = 0,
+              min_accuracy=95, max_epoch=500, min_delay_expectancy=50, q_size=10, raised_err_threashold=10, acc_err_threshold=1,
+              trace=False, trace_interval=10):
 
         (_, count) = inputs.shape
         targets = onehot_encode(labels, self.n_classes)
 
         assume(momentum >= 0 and momentum <=1, 'Invalid momentum.')
         last_dWs = list((np.zeros((self.dims[z + 1], self.dims[z] + 1)).T for z in range(self.nlayers - 1)))
+
+        self.best_weights = self.weights # weights from epoche with minimal validation error
+        self.best_error = 100
+        self.best_epoch = 0
+        self.min_accuracy = min_accuracy
+        self.max_epoch = max_epoch
+        self.min_delay_expectancy = min_delay_expectancy
+        self.errors_queue = q.Queue(q_size)
+        self.raised_err_threashold = raised_err_threashold
+        self.acc_err_threshold = acc_err_threshold
 
         # assume(descent_type in {'online', 'mini-batch'}, 'Invalid descent type.')
         # if descent_type == 'mini-batch':
@@ -108,12 +116,17 @@ class MLPClassifier(MLP):
                 redraw()
 
             # early stopping
-            term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels)
+            term_min_delay, term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels)
             print(';')
 
             # consider terminating only if accuracy is bigger than minimal accuracy.
-            # need to convert min accuracz to max classification error
+            # need to convert min accuracy to max classification error
             if vCE <= (100-self.min_accuracy)/100:
+                if term_min_delay:
+                    print('Training terminated in: Model = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
+                          'due inability to reach new minimum'.format(self.model_ID, ep, self.best_epoch))
+                    self.weights = self.best_weights
+                    break
                 if term_acc_err:
                     print('Training terminated in: Model = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
                           'due to accumulated error'.format(self.model_ID, ep, self.best_epoch))
@@ -157,16 +170,22 @@ class MLPClassifier(MLP):
             accumulated_error += delta_error
             if delta_error > 0:
                 raised_error += 1
+        if self.errors_queue.qsize() is not 0:
+            accumulated_error /= self.errors_queue.qsize()
+            raised_error /= self.errors_queue.qsize()
 
-        print('; Validation: CE = {:6.2%}, RE = {:.5f}, Raised Err = {:d}, Accumul Err = {:2.5f}'
+        print('; Validation: CE = {:6.2%}, RE = {:.5f}, Raised Err = {:1.2f}, Accumul Err = {:2.5f}'
               .format(vCE, vRE, raised_error, accumulated_error), end='')
 
         # terminate training if conditions is reached
+        term_min_delay = False
         term_acc_err = False
         term_raised_err = False
+        if ep - self.best_epoch > self.min_delay_expectancy:
+            term_min_delay = True
         if accumulated_error > self.acc_err_threshold:
             term_acc_err = True
-        if raised_error >= self.errors_queue.qsize() * self.raised_err_threashold:
+        if raised_error >= self.raised_err_threashold:
             term_raised_err = True
 
-        return term_acc_err, term_raised_err, vCE, vRE
+        return term_min_delay, term_acc_err, term_raised_err, vCE, vRE

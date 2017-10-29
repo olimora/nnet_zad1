@@ -64,11 +64,11 @@ if __name__ == '__main__':
 
     model = MLPClassifier([train_inputs.shape[0], 20, 6, np.max(train_labels) + 1],
                           ['tanh', 'sig', 'lin'], ['uniform', [0, 1]],
-                          min_accuracy = 97, max_epoch = 500,
-                          q_size=10, raised_err_threashold=0.66, acc_err_threshold=100, #0.009,
                           model_ID=0)
     trainCEs, trainREs = model.train(train_inputs, train_labels, test_inputs, test_labels,
-                                     alpha=0.05, momentum = 0.05,
+                                     alpha=0.05, momentum = 0.2,
+                                     min_accuracy=97, max_epoch=500, min_delay_expectancy=50,
+                                     q_size=30, raised_err_threashold=0.66, acc_err_threshold=0.001,
                                      trace=False, trace_interval=10)
 
     testCE, testRE = model.test(test_inputs, test_labels)
