@@ -1,6 +1,7 @@
 import numpy as np
 from util import *
 from func import *
+import queue as q
 
 
 ## Multi-Layer Perceptron
@@ -8,14 +9,25 @@ from func import *
 
 class MLP():
 
-    def __init__(self, dims, functions, distrib):
+    def __init__(self, dims, functions, distrib,
+                 min_accuracy = 95, max_epoch = 500, q_size = 10, raised_err_threashold = 10, acc_err_threshold = 1,
+                 model_ID = -1):
         assume(len(dims)-1 == len(functions), 'Invalid number of functions.')
         assume(all(f in {'sigmoid', 'sig', 'tanh', 'linear', 'lin', 'softmax'} for f in functions), 'Invalid function name.')
         assume(distrib[0] in {'uniform', 'normal'}, 'Invalid distribution form.')
         self.nlayers = len(dims)
         self.dims = dims
         self.weights = self.initialize_weights(self.random_distrib(distrib[0]), distrib[1])
+        self.best_weights = self.weights # weights from epoche with minimal validation error
+        self.best_error = 100
+        self.best_epoch = 0
+        self.min_accuracy = min_accuracy
+        self.max_epoch = max_epoch
+        self.errors_queue = q.Queue(q_size)
+        self.raised_err_threashold = raised_err_threashold
+        self.acc_err_threshold = acc_err_threshold
         self.functions = list(self.assign_function(i) for i in functions)
+        self.model_ID = model_ID
 
 
 
