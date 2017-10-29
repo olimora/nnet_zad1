@@ -63,9 +63,13 @@ if __name__ == '__main__':
     # print(results)
 
     model = MLPClassifier([train_inputs.shape[0], 20, 6, np.max(train_labels) + 1],
-                          ['tanh', 'sig', 'lin'], ['uniform', [0, 1]])
-    trainCEs, trainREs = model.train(train_inputs, train_labels, alpha=0.05, eps=500,
-                                     trace=True, trace_interval=10, model_num=0)
+                          ['tanh', 'sig', 'lin'], ['uniform', [0, 1]],
+                          min_accuracy = 97, max_epoch = 500,
+                          q_size=10, raised_err_threashold=0.66, acc_err_threshold=100, #0.009,
+                          model_ID=0)
+    trainCEs, trainREs = model.train(train_inputs, train_labels, test_inputs, test_labels,
+                                     alpha=0.05,
+                                     trace=False, trace_interval=10)
 
     testCE, testRE = model.test(test_inputs, test_labels)
     print('Final testing error: CE = {:6.2%}, RE = {:.5f}'.format(testCE, testRE))
