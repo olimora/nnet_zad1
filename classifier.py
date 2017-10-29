@@ -1,5 +1,5 @@
 import numpy as np
-
+import math as mth
 from mlp import *
 from util import *
 
@@ -43,10 +43,18 @@ class MLPClassifier(MLP):
 
     ## training
 
-    def train(self, inputs, labels, validation_inputs = None, validation_labels = None,
-              alpha=0.1, trace=False, trace_interval=10):
+    def train(self, inputs, labels, validation_inputs = None, validation_labels = None, #descent_type = 'online', batch_size = None,
+              alpha=0.1, momentum = 0, trace=False, trace_interval=10):
+
         (_, count) = inputs.shape
         targets = onehot_encode(labels, self.n_classes)
+
+        assume(momentum >= 0 and momentum <=1, 'Invalid momentum.')
+        last_dWs = list((np.zeros((self.dims[z + 1], self.dims[z] + 1)).T for z in range(self.nlayers - 1)))
+
+        # assume(descent_type in {'online', 'mini-batch'}, 'Invalid descent type.')
+        # if descent_type == 'mini-batch':
+        #     assume((batch_size is not None) and (batch_size >= count/100) and (batch_size <= count/10), 'Invalid batch size.')
 
         if trace:
             ion()
@@ -58,6 +66,7 @@ class MLPClassifier(MLP):
             CE = 0
             RE = 0
 
+            # if descent_type == 'online' :
             for i in np.random.permutation(count):
                 x = inputs[:, i] # FIXME
                 d = targets[:, i] # FIXME
@@ -68,7 +77,15 @@ class MLPClassifier(MLP):
                 RE += self.cost(d,y)
 
                 for i in range(self.nlayers-1):
-                    self.weights[i] += alpha*dWs[i].T
+                    self.weights[i] += alpha*dWs[i].T + momentum*last_dWs[i].T
+                last_dWs = dWs
+
+            # if descent_type == 'mini-batch':
+            #     loops = mth.ceil(count/batch_size)
+            #
+            #     for i in range(count/batch_size)
+
+
 
             CE /= count
             RE /= count

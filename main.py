@@ -68,7 +68,7 @@ if __name__ == '__main__':
                           q_size=10, raised_err_threashold=0.66, acc_err_threshold=100, #0.009,
                           model_ID=0)
     trainCEs, trainREs = model.train(train_inputs, train_labels, test_inputs, test_labels,
-                                     alpha=0.05,
+                                     alpha=0.05, momentum = 0.05,
                                      trace=False, trace_interval=10)
 
     testCE, testRE = model.test(test_inputs, test_labels)
