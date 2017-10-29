@@ -1,6 +1,5 @@
 import numpy as np
 
-
 ## general activations
 
 def relu(X):
