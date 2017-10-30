@@ -9,7 +9,7 @@ import queue as q
 
 class MLP():
 
-    def __init__(self, dims, functions, distrib, model_ID = -1):
+    def __init__(self, dims, functions, distrib, model_ID=-1, split_ID=-1):
         assume(len(dims)-1 == len(functions), 'Invalid number of functions.')
         assume(all(f in {'sigmoid', 'sig', 'tanh', 'linear', 'lin', 'softmax'} for f in functions), 'Invalid function name.')
         assume(distrib[0] in {'uniform', 'normal'}, 'Invalid distribution form.')
@@ -18,6 +18,7 @@ class MLP():
         self.weights = self.initialize_weights(self.random_distrib(distrib[0]), distrib[1])
         self.functions = list(self.assign_function(i) for i in functions)
         self.model_ID = model_ID
+        self.split_ID = split_ID
 
 
 

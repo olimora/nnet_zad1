@@ -10,6 +10,7 @@ def parallel_cross_validation(split_id, passed_data):
     split = passed_data[0]
     train_inputs = passed_data[1]
     train_labels = passed_data[2]
+    model_ID = passed_data[3]
 
     #indexes of validation entries are in dedicated split
     valid_ind = split[split_id]
@@ -24,7 +25,7 @@ def parallel_cross_validation(split_id, passed_data):
     ## train & validate
     model = MLPClassifier([train_inputs.shape[0], 20, 6, np.max(train_labels) + 1],
                           ['tanh', 'sig', 'lin'], ['uniform', [0, 1]],
-                          model_ID=split_id)
+                          model_ID=model_ID, split_id=split_id)
     trainCEs, trainREs = model.train(estim_inputs, estim_labels, valid_inputs, valid_labels,
                                      alpha=0.05, momentum=0.1,
                                      min_accuracy=97, max_epoch=500, min_delay_expectancy=50,
@@ -81,7 +82,7 @@ if __name__ == '__main__':
         # parallel cross validation
         pool = mp.Pool(processes=4)  # removing processes argument makes the code run on all available cores
         results = np.array(
-            pool.starmap(parallel_cross_validation, zip(np.arange(10), repeat([split, train_inputs, train_labels]))))
+            pool.starmap(parallel_cross_validation, zip(np.arange(10), repeat([split, train_inputs, train_labels, i]))))
         print(results)
 
         # mean from results

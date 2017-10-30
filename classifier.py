@@ -6,9 +6,9 @@ from util import *
 
 class MLPClassifier(MLP):
 
-    def __init__(self, dims, functions, distrib, model_ID = -1):
+    def __init__(self, dims, functions, distrib, model_ID=-1, split_ID=-1):
         self.n_classes = dims[-1]
-        super().__init__(dims, functions, distrib, model_ID)
+        super().__init__(dims, functions, distrib, model_ID, split_ID)
 
 
     def cost(self, targets, outputs): # new
@@ -17,23 +17,20 @@ class MLPClassifier(MLP):
     ## prediction pass
 
     def predict(self, inputs):
-        # outputs, *_ = self.forward(inputs)  # if self.forward() can take a whole batch
         _, outputs = self.forward(inputs)
         outputs = outputs[-1]
-        # outputs = np.stack([self.forward(x)[0] for x in inputs.T]) # otherwise
         return onehot_decode(outputs)
 
 
     ## testing pass
 
     def test(self, inputs, labels):
-        # outputs, *_ = self.forward(inputs) # FIXME
         _, outputs = self.forward(inputs)
         outputs = outputs[-1]
-        targets = onehot_encode(labels, self.n_classes) # FIXME
-        predicted = onehot_decode(outputs) # FIXME
-        CE = np.sum(labels != predicted) / inputs.shape[1] # FIXME
-        RE = np.sum(self.cost(targets,outputs)) / inputs.shape[1]# FIXME
+        targets = onehot_encode(labels, self.n_classes)
+        predicted = onehot_decode(outputs)
+        CE = np.sum(labels != predicted) / inputs.shape[1] #TODO mean
+        RE = np.sum(self.cost(targets,outputs)) / inputs.shape[1]
         return CE, RE
 
 
@@ -93,7 +90,7 @@ class MLPClassifier(MLP):
             #     print('Model {:1d}: Ep {:3d}/{}: '.format(model_num, ep+1, eps), end='')
             #     print('CE = {:6.2%}, RE = {:.5f}'.format(CE, RE))
 
-            print('Model {:1d}: Ep {:3d}/{}: '.format(self.model_ID, ep, self.max_epoch), end='')
+            print('Model {:1d}: Split {:1d}: Ep {:3d}/{}: '.format(self.model_ID, self.split_ID, ep, self.max_epoch), end='')
             print('CE = {:6.2%}, RE = {:.5f}'.format(CE, RE), end='')
 
             if trace and ((ep+1) % trace_interval == 0):
