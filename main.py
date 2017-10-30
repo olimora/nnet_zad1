@@ -92,6 +92,10 @@ if __name__ == '__main__':
         print(results.shape)
 
         # mean from results
+        means = np.mean(results, axis=0)
+        mean_CE = means[1]
+        mean_RE = means[2]
+
 
         # save hyperparameters and results in csv
 
