@@ -4,6 +4,8 @@ from util import *
 from classifier import *
 import multiprocessing as mp
 from itertools import repeat
+import datetime
+import csv
 
 def parallel_cross_validation(split_ID, passed_data):
     #passed data from common main
@@ -68,9 +70,21 @@ if __name__ == '__main__':
         20, 0.66, 0.001])   # q_size, raised_err_threashold, acc_err_threshold
 
 
+    date_time = datetime.datetime.now()
+    file_name = 'D://skola//NNET//source//zadanie1_results//validation_results_{:4d}_{:2d}_{:2d}__{:2d}_{:2d}_{:2d}.csv' \
+        .format(date_time.year, date_time.month, date_time.day, date_time.hour, date_time.minute, date_time.second)
+    file = open(file_name, 'w', newline='')
+    writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(['model', 'data_normalization', 'layers', 'functions', 'distribution',
+                     'aplha', 'momentum', 'min_accuracy', 'max_epoch', 'min_delay_expectancy',
+                     'q_size', 'raised_err_threashold', 'acc_err_threshold',
+                     'valid_CE', 'valid_RE'])
+    # print(1/0)
+
     # loop the models setups
     for i in range(len(hyperparameters)):
-        norm_func = get_normalize_func(hyperparameters[i][0])
+        params = hyperparameters[i]
+        norm_func = get_normalize_func(params[0])
         train_inputs = train_inputs_org
         train_inputs[0] = norm_func(train_inputs[0])
         train_inputs[1] = norm_func(train_inputs[1])
@@ -86,18 +100,26 @@ if __name__ == '__main__':
 
         # parallel cross validation
         pool = mp.Pool(processes=4)  # removing processes argument makes the code run on all available cores
-        results = np.array(pool.starmap(parallel_cross_validation,
-            zip(np.arange(10), repeat([split, train_inputs, train_labels, i, hyperparameters[i]]))))
-        print(results)
-        print(results.shape)
+        validation_results = np.array(pool.starmap(parallel_cross_validation,
+                                                   zip(np.arange(10), repeat([split, train_inputs, train_labels, i, params]))))
+        print(validation_results)
+        print(validation_results.shape)
 
         # mean from results
-        means = np.mean(results, axis=0)
+        means = np.mean(validation_results, axis=0)
         mean_CE = means[1]
         mean_RE = means[2]
 
-
         # save hyperparameters and results in csv
+        # np.savetxt('validation_results_{:4d}_{:2d}_{:2d}__{:2d}_{:2d}_{:2d}.csv'
+        #            .format(date_time[0], date_time[1], date_time[2], date_time[3], date_time[4], date_time[5]),
+        #            a, delimiter=",")
+        writer.writerow([i, params[0], params[1], params[2], params[3],
+                         params[4], params[5], params[6], params[7], params[8],
+                         params[9], params[10], params[11],
+                         mean_CE, mean_RE])
+
+
 
     print(1 / 0)
 
