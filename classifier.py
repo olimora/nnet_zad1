@@ -39,7 +39,7 @@ class MLPClassifier(MLP):
     def train(self, inputs, labels, validation_inputs=None, validation_labels=None,
               alpha=0.1, momentum=0,
               min_accuracy=95, max_epoch=500, min_delay_expectancy=50, q_size=10, raised_err_threashold=10, acc_err_threshold=1,
-              trace=False, trace_interval=10):
+              trace_text=True, trace_plots=False, trace_interval=10):
 
         (_, count) = inputs.shape
         targets = onehot_encode(labels, self.n_classes)
@@ -54,11 +54,11 @@ class MLPClassifier(MLP):
         self.min_accuracy = min_accuracy
         self.max_epoch = max_epoch
         self.min_delay_expectancy = min_delay_expectancy
-        self.errors_queue = q.Queue(q_size)
+        self.errors_queue = q.Queue(q_size+1)
         self.raised_err_threashold = raised_err_threashold
         self.acc_err_threshold = acc_err_threshold
 
-        if trace:
+        if trace_plots:
             ion()
 
         CEs = []
@@ -88,14 +88,13 @@ class MLPClassifier(MLP):
             CEs.append(CE)
             REs.append(RE)
 
-            # if (ep+1) % 10 == 0:
-            #     print('Model {:1d}: Ep {:3d}/{}: '.format(model_num, ep+1, eps), end='')
-            #     print('CE = {:6.2%}, RE = {:.5f}'.format(CE, RE))
 
-            print('Model {:1d}: Split {:1d}: Ep {:3d}/{}: '.format(self.model_ID, self.split_ID, ep, self.max_epoch), end='')
-            print('CE = {:6.2%}, RE = {:.5f}'.format(CE, RE), end='')
+            print('Model {:1d}: Split {:1d}: '.format(self.model_ID, self.split_ID), end='')
+            if trace_text:
+                print('Ep {:3d}/{}: '.format(ep, self.max_epoch), end='')
+                print('CE = {:6.2%}, RE = {:.5f} '.format(CE, RE), end='')
 
-            if trace and ((ep+1) % trace_interval == 0):
+            if trace_plots and ((ep+1) % trace_interval == 0):
                 clear()
                 predicted = self.predict(inputs)
                 plot_dots(inputs, labels, predicted, block=False)
@@ -103,7 +102,8 @@ class MLPClassifier(MLP):
                 redraw()
 
             # early stopping
-            term_min_delay, term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels)
+            if (validation_inputs is not None and validation_labels is not None):
+                term_min_delay, term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels)
             print(';')
 
             # consider terminating only if accuracy is bigger than minimal accuracy.
@@ -126,12 +126,12 @@ class MLPClassifier(MLP):
                     break
 
 
-        if trace:
+        if trace_plots:
             ioff()
 
         print()
 
-        return CEs, REs, self.best_vCE, self.best_vRE, ep+1
+        return CEs, REs, self.best_vCE, self.best_vRE, self.best_epoch
 
 
     def early_stopping(self, ep, validation_inputs, validation_labels):
