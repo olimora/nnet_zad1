@@ -89,8 +89,8 @@ class MLPClassifier(MLP):
             REs.append(RE)
 
 
-            print('Model {:1d}: Split {:1d}: '.format(self.model_ID, self.split_ID), end='')
             if trace_text:
+                print('Model {:1d}: Split {:1d}: '.format(self.model_ID, self.split_ID), end='')
                 print('Ep {:3d}/{}: '.format(ep, self.max_epoch), end='')
                 print('CE = {:6.2%}, RE = {:.5f} '.format(CE, RE), end='')
 
@@ -103,8 +103,7 @@ class MLPClassifier(MLP):
 
             # early stopping
             if (validation_inputs is not None and validation_labels is not None):
-                term_min_delay, term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels)
-            print(';')
+                term_min_delay, term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels, trace_text)
 
             # consider terminating only if accuracy is bigger than minimal accuracy.
             # need to convert min accuracy to max classification error
@@ -134,7 +133,7 @@ class MLPClassifier(MLP):
         return CEs, REs, self.best_vCE, self.best_vRE, self.best_epoch
 
 
-    def early_stopping(self, ep, validation_inputs, validation_labels):
+    def early_stopping(self, ep, validation_inputs, validation_labels, trace_text):
         # validate net
         vCE, vRE = self.test(validation_inputs, validation_labels)
 
@@ -162,8 +161,9 @@ class MLPClassifier(MLP):
             accumulated_error /= self.errors_queue.qsize()
             raised_error /= self.errors_queue.qsize()
 
-        print('; Validation: CE = {:6.2%}, RE = {:.5f}, Raised Err = {:1.2f}, Accumul Err = {:2.5f}'
-              .format(vCE, vRE, raised_error, accumulated_error), end='')
+        if trace_text:
+            print('; Validation: CE = {:6.2%}, RE = {:.5f}, Raised Err = {:1.2f}, Accumul Err = {:2.5f}'
+                  .format(vCE, vRE, raised_error, accumulated_error), end='')
 
         # terminate training if conditions is reached
         term_min_delay = False

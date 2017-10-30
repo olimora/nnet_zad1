@@ -16,6 +16,8 @@ def parallel_cross_validation(split_ID, passed_data):
     model_ID = passed_data[3]
     parameters = passed_data[4]
 
+    print('Model ', model_ID, ', Split ', split_ID, ': started')
+
     #indexes of validation entries are in dedicated split
     valid_ind = split[split_ID]
     #indexes of estimation entries are all the others splits combined
@@ -38,8 +40,9 @@ def parallel_cross_validation(split_ID, passed_data):
                                                                q_size=parameters[9],
                                                                raised_err_threashold=parameters[10],
                                                                acc_err_threshold=parameters[11],
-                                                               trace_text=True, trace_plots=False, trace_interval=10)
+                                                               trace_text=False, trace_plots=False, trace_interval=10)
     testCE, testRE = model.test(valid_inputs, valid_labels)
+    print('Model ', model_ID, ', Split ', split_ID, ': stopped')
     return np.array([split_ID, testCE, testRE, epoch])
 
 if __name__ == '__main__':
