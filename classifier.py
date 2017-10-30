@@ -48,7 +48,8 @@ class MLPClassifier(MLP):
         last_dWs = list((np.zeros((self.dims[z + 1], self.dims[z] + 1)).T for z in range(self.nlayers - 1)))
 
         self.best_weights = self.weights # weights from epoche with minimal validation error
-        self.best_error = 100
+        self.best_vRE = 100
+        self.best_vCE = 100
         self.best_epoch = 0
         self.min_accuracy = min_accuracy
         self.max_epoch = max_epoch
@@ -62,6 +63,7 @@ class MLPClassifier(MLP):
 
         CEs = []
         REs = []
+
 
         for ep in range(self.max_epoch):
             CE = 0
@@ -129,7 +131,7 @@ class MLPClassifier(MLP):
 
         print()
 
-        return CEs, REs
+        return CEs, REs, self.best_vCE, self.best_vRE, ep+1
 
 
     def early_stopping(self, ep, validation_inputs, validation_labels):
@@ -137,9 +139,10 @@ class MLPClassifier(MLP):
         vCE, vRE = self.test(validation_inputs, validation_labels)
 
         # remembering the best weights
-        if vRE < self.best_error:
+        if vRE < self.best_vRE:
             self.best_epoch = ep
-            self.best_error = vRE
+            self.best_vRE = vRE
+            self.best_vCE = vCE
             self.best_weights = self.weights
 
         # keeping Q actual

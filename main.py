@@ -28,7 +28,7 @@ def parallel_cross_validation(split_ID, passed_data):
     ## train & validate
     model = MLPClassifier(parameters[1], parameters[2], parameters[3],
                           model_ID=model_ID, split_ID=split_ID)
-    trainCEs, trainREs = model.train(estim_inputs, estim_labels, valid_inputs, valid_labels,
+    trainCEs, trainREs, validCE, validRE, epochs = model.train(estim_inputs, estim_labels, valid_inputs, valid_labels,
                                      alpha=parameters[4],
                                      momentum=parameters[5],
                                      min_accuracy=parameters[6],
@@ -38,9 +38,8 @@ def parallel_cross_validation(split_ID, passed_data):
                                      raised_err_threashold=parameters[10],
                                      acc_err_threshold=parameters[11],
                                      trace=False, trace_interval=10)
-    validCE, validRE = model.test(valid_inputs, valid_labels)
-
-    return np.array([split_ID, validCE, validRE])
+    testCE, testRE = model.test(valid_inputs, valid_labels)
+    return np.array([split_ID, testCE, testRE, epochs])
 
 if __name__ == '__main__':
 
@@ -60,14 +59,14 @@ if __name__ == '__main__':
         ['abs', # data normalization type
         [2, 20, 6, 3], ['tanh', 'sig', 'lin'], ['uniform', [0, 1]], # layers, functions, distribution and scale
         0.05, 0.1,          # aplha, momentum
-        97, 5, 50,        # min_accuracy, max_epoch, min_delay_expectancy
+        97, 500, 50,        # min_accuracy, max_epoch, min_delay_expectancy
         30, 0.66, 0.001])   # q_size, raised_err_threashold, acc_err_threshold
-    hyperparameters.append(
-        ['std', # data normalization type
-        [2, 12, 6, 3], ['sig', 'sig', 'sig'], ['normal', [-1, 1]], # layers, functions, distribution and scale
-        0.05, 0.05,         # aplha, momentum
-        97, 5, 50,        # min_accuracy, max_epoch, min_delay_expectancy
-        20, 0.66, 0.001])   # q_size, raised_err_threashold, acc_err_threshold
+    # hyperparameters.append(
+    #     ['std', # data normalization type
+    #     [2, 12, 6, 3], ['sig', 'sig', 'sig'], ['normal', [-1, 1]], # layers, functions, distribution and scale
+    #     0.05, 0.05,         # aplha, momentum
+    #     97, 500, 50,        # min_accuracy, max_epoch, min_delay_expectancy
+    #     20, 0.66, 0.001])   # q_size, raised_err_threashold, acc_err_threshold
 
 
     date_time = datetime.datetime.now()
@@ -78,7 +77,8 @@ if __name__ == '__main__':
     writer.writerow(['model', 'data_normalization', 'layers', 'functions', 'distribution',
                      'aplha', 'momentum', 'min_accuracy', 'max_epoch', 'min_delay_expectancy',
                      'q_size', 'raised_err_threashold', 'acc_err_threshold',
-                     'valid_CE', 'valid_RE'])
+                     'mean_valid_CE', 'mean_valid_RE', 'best_valid_CE', 'best_valid_RE',
+                     'mean_epochs'])
     # print(1/0)
 
     # loop the models setups
@@ -102,29 +102,28 @@ if __name__ == '__main__':
         pool = mp.Pool(processes=4)  # removing processes argument makes the code run on all available cores
         validation_results = np.array(pool.starmap(parallel_cross_validation,
                                                    zip(np.arange(10), repeat([split, train_inputs, train_labels, i, params]))))
-        print(validation_results)
-        print(validation_results.shape)
+        # print(validation_results)
+        # print(validation_results.shape)
 
         # mean from results
         means = np.mean(validation_results, axis=0)
         mean_CE = means[1]
         mean_RE = means[2]
+        mean_epochs = means[3]
+        bests = np.min(validation_results,axis=0)
+        best_CE = bests[1]
+        best_RE = bests[2]
 
         # save hyperparameters and results in csv
-        # np.savetxt('validation_results_{:4d}_{:2d}_{:2d}__{:2d}_{:2d}_{:2d}.csv'
-        #            .format(date_time[0], date_time[1], date_time[2], date_time[3], date_time[4], date_time[5]),
-        #            a, delimiter=",")
         writer.writerow([i, params[0], params[1], params[2], params[3],
                          params[4], params[5], params[6], params[7], params[8],
                          params[9], params[10], params[11],
-                         mean_CE, mean_RE])
+                         mean_CE, mean_RE, best_CE, best_RE, mean_epochs])
 
-
-
-    print(1 / 0)
 
 
     # read csv, get best hyperparameters, create model like that and test on test data
+
 
     # normalize data
 
