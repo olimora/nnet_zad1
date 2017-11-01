@@ -6,9 +6,9 @@ from util import *
 
 class MLPClassifier(MLP):
 
-    def __init__(self, dims, functions, distrib, model_ID = -1):
+    def __init__(self, dims, functions, distrib, model_ID=-1, split_ID=-1):
         self.n_classes = dims[-1]
-        super().__init__(dims, functions, distrib, model_ID)
+        super().__init__(dims, functions, distrib, model_ID, split_ID)
 
 
     def cost(self, targets, outputs): # new
@@ -17,24 +17,30 @@ class MLPClassifier(MLP):
     ## prediction pass
 
     def predict(self, inputs):
-        # outputs, *_ = self.forward(inputs)  # if self.forward() can take a whole batch
         _, outputs = self.forward(inputs)
         outputs = outputs[-1]
-        # outputs = np.stack([self.forward(x)[0] for x in inputs.T]) # otherwise
         return onehot_decode(outputs)
 
 
     ## testing pass
 
     def test(self, inputs, labels):
-        # outputs, *_ = self.forward(inputs) # FIXME
         _, outputs = self.forward(inputs)
         outputs = outputs[-1]
-        targets = onehot_encode(labels, self.n_classes) # FIXME
-        predicted = onehot_decode(outputs) # FIXME
-        CE = np.sum(labels != predicted) / inputs.shape[1] # FIXME
-        RE = np.sum(self.cost(targets,outputs)) / inputs.shape[1]# FIXME
+        targets = onehot_encode(labels, self.n_classes)
+        predicted = onehot_decode(outputs)
+        CE = np.sum(labels != predicted) / inputs.shape[1] #TODO mean
+        RE = np.sum(self.cost(targets,outputs)) / inputs.shape[1]
         return CE, RE
+
+    def test2(self, inputs, labels):
+        _, outputs = self.forward(inputs)
+        outputs = outputs[-1]
+        targets = onehot_encode(labels, self.n_classes)
+        predicted = onehot_decode(outputs)
+        CE = np.sum(labels != predicted) / inputs.shape[1] #TODO mean
+        RE = np.sum(self.cost(targets,outputs)) / inputs.shape[1]
+        return CE, RE, predicted
 
 
     ## training
@@ -42,7 +48,7 @@ class MLPClassifier(MLP):
     def train(self, inputs, labels, validation_inputs=None, validation_labels=None,
               alpha=0.1, momentum=0,
               min_accuracy=95, max_epoch=500, min_delay_expectancy=50, q_size=10, raised_err_threashold=10, acc_err_threshold=1,
-              trace=False, trace_interval=10):
+              trace_text=True, trace_plots=False, trace_interval=10):
 
         (_, count) = inputs.shape
         targets = onehot_encode(labels, self.n_classes)
@@ -51,20 +57,22 @@ class MLPClassifier(MLP):
         last_dWs = list((np.zeros((self.dims[z + 1], self.dims[z] + 1)).T for z in range(self.nlayers - 1)))
 
         self.best_weights = self.weights # weights from epoche with minimal validation error
-        self.best_error = 100
+        self.best_vRE = 100
+        self.best_vCE = 100
         self.best_epoch = 0
         self.min_accuracy = min_accuracy
         self.max_epoch = max_epoch
         self.min_delay_expectancy = min_delay_expectancy
-        self.errors_queue = q.Queue(q_size)
+        self.errors_queue = q.Queue(q_size+1)
         self.raised_err_threashold = raised_err_threashold
         self.acc_err_threshold = acc_err_threshold
 
-        if trace:
+        if trace_plots:
             ion()
 
         CEs = []
         REs = []
+
 
         for ep in range(self.max_epoch):
             CE = 0
@@ -89,14 +97,13 @@ class MLPClassifier(MLP):
             CEs.append(CE)
             REs.append(RE)
 
-            # if (ep+1) % 10 == 0:
-            #     print('Model {:1d}: Ep {:3d}/{}: '.format(model_num, ep+1, eps), end='')
-            #     print('CE = {:6.2%}, RE = {:.5f}'.format(CE, RE))
 
-            print('Model {:1d}: Ep {:3d}/{}: '.format(self.model_ID, ep, self.max_epoch), end='')
-            print('CE = {:6.2%}, RE = {:.5f}'.format(CE, RE), end='')
+            if trace_text:
+                print('Model {:1d}: Split {:1d}: '.format(self.model_ID, self.split_ID), end='')
+                print('Ep {:3d}/{}: '.format(ep, self.max_epoch), end='')
+                print('CE = {:6.2%}, RE = {:.5f} '.format(CE, RE), end='')
 
-            if trace and ((ep+1) % trace_interval == 0):
+            if trace_plots and ((ep+1) % trace_interval == 0):
                 clear()
                 predicted = self.predict(inputs)
                 plot_dots(inputs, labels, predicted, block=False)
@@ -104,45 +111,51 @@ class MLPClassifier(MLP):
                 redraw()
 
             # early stopping
-            term_min_delay, term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels)
-            print(';')
+            if (validation_inputs is not None and validation_labels is not None):
+                term_min_delay, term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels, trace_text)
+
+
+            if trace_text:
+                print(';')
 
             # consider terminating only if accuracy is bigger than minimal accuracy.
             # need to convert min accuracy to max classification error
-            if vCE <= (100-self.min_accuracy)/100:
-                if term_min_delay:
-                    print('Training terminated in: Model = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
-                          'due inability to reach new minimum'.format(self.model_ID, ep, self.best_epoch))
-                    self.weights = self.best_weights
-                    break
-                if term_acc_err:
-                    print('Training terminated in: Model = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
-                          'due to accumulated error'.format(self.model_ID, ep, self.best_epoch))
-                    self.weights = self.best_weights
-                    break
-                if term_raised_err:
-                    print('Training terminated in: Model = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
-                          'due to raised error'.format(self.model_ID, ep, self.best_epoch))
-                    self.weights = self.best_weights
-                    break
+            if (validation_inputs is not None and validation_labels is not None):
+                if vCE <= (100-self.min_accuracy)/100:
+                    if term_min_delay:
+                        self.weights = self.best_weights
+                        print('Training terminated in: Split = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
+                              'due to inability to reach new minimum'.format(self.split_ID, ep, self.best_epoch))
+                        break
+                    if term_acc_err:
+                        self.weights = self.best_weights
+                        print('Training terminated in: Split = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
+                              'due to accumulated error'.format(self.split_ID, ep, self.best_epoch))
+                        break
+                    if term_raised_err:
+                        self.weights = self.best_weights
+                        print('Training terminated in: Split = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
+                              'due to raised error'.format(self.split_ID, ep, self.best_epoch))
+                        break
 
 
-        if trace:
+        if trace_plots:
             ioff()
 
-        print()
+        # if (validation_inputs is not None and validation_labels is not None):
 
-        return CEs, REs
+        return CEs, REs, self.best_vCE, self.best_vRE, self.best_epoch
 
 
-    def early_stopping(self, ep, validation_inputs, validation_labels):
+    def early_stopping(self, ep, validation_inputs, validation_labels, trace_text):
         # validate net
         vCE, vRE = self.test(validation_inputs, validation_labels)
 
         # remembering the best weights
-        if vRE < self.best_error:
+        if vRE < self.best_vRE:
             self.best_epoch = ep
-            self.best_error = vRE
+            self.best_vRE = vRE
+            self.best_vCE = vCE
             self.best_weights = self.weights
 
         # keeping Q actual
@@ -162,8 +175,9 @@ class MLPClassifier(MLP):
             accumulated_error /= self.errors_queue.qsize()
             raised_error /= self.errors_queue.qsize()
 
-        print('; Validation: CE = {:6.2%}, RE = {:.5f}, Raised Err = {:1.2f}, Accumul Err = {:2.5f}'
-              .format(vCE, vRE, raised_error, accumulated_error), end='')
+        if trace_text:
+            print('; Validation: CE = {:6.2%}, RE = {:.5f}, Raised Err = {:1.2f}, Accumul Err = {:2.5f}'
+                  .format(vCE, vRE, raised_error, accumulated_error), end='')
 
         # terminate training if conditions is reached
         term_min_delay = False

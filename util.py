@@ -15,8 +15,18 @@ def assume(bool, msg):
 def scale(mat, min, max):
     return mat * (max - min) + min
 
-def normalize(mat):
+def normalize(mat): # classic 0 to 1
     return (mat - np.amin(mat)) / (np.amax(mat) - np.amin(mat))
+
+def normalize2(mat): # std
+    return (mat - np.mean(mat)) / np.std(mat)
+
+def get_normalize_func(t):
+    norm_switch = {
+        'abs': normalize,
+        'std': normalize2,
+    }
+    return norm_switch.get(t, normalize)
 
 def labels_to_nums(labels):
     return ord(labels)-65
