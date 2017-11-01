@@ -60,130 +60,37 @@ if __name__ == '__main__':
     # matrix of experiment setups
     hyperparameters = list()
     hyperparameters.append(
-        ['abs',  # data normalization type
-         [2, 20, 3], ['sig', 'sig'], ['uniform', [0, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
         ['std',  # data normalization type
-         [2, 20, 3], ['sig', 'sig'], ['uniform', [0, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
+         [2, 24, 12, 3], ['tanh', 'sig', 'sig'], ['uniform', [0, 1]],  # layers, functions, distribution and scale
+         0.15, 0.1,  # aplha, momentum
+         97, 250, 50,  # min_accuracy, max_epoch, min_delay_expectancy
+         20, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
+    # hyperparameters.append(
+    #     ['std',  # data normalization type
+    #      [2, 24, 12, 3], ['tanh', 'sig', 'sig'], ['uniform', [0, 1]],  # layers, functions, distribution and scale
+    #      0.12, 0.05,  # aplha, momentum
+    #      97, 250, 50,  # min_accuracy, max_epoch, min_delay_expectancy
+    #      30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
+    # hyperparameters.append(
+    #     ['std',  # data normalization type
+    #      [2, 24, 12, 3], ['tanh', 'sig', 'sig'], ['uniform', [0, 1]],  # layers, functions, distribution and scale
+    #      0.12, 0.05,  # aplha, momentum
+    #      97, 250, 50,  # min_accuracy, max_epoch, min_delay_expectancy
+    #      30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
 
-    hyperparameters.append(
-        ['abs',  # data normalization type
-         [2, 20, 3], ['sig', 'sig'], ['normal', [0, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
 
-    hyperparameters.append(
-        ['std',  # data normalization type
-         [2, 20, 3], ['sig', 'sig'], ['normal', [0, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['abs',  # data normalization type
-         [2, 20, 3], ['sig', 'sig'], ['uniform', [-1, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['std',  # data normalization type
-         [2, 20, 3], ['sig', 'sig'], ['uniform', [-1, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['abs',  # data normalization type
-         [2, 20, 3], ['sig', 'sig'], ['normal', [-1, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['std',  # data normalization type
-         [2, 20, 3], ['sig', 'sig'], ['normal', [-1, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['abs',  # data normalization type
-         [2, 20, 3], ['tanh', 'sig'], ['uniform', [0, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['std',  # data normalization type
-         [2, 20, 3], ['tanh', 'sig'], ['uniform', [0, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['abs',  # data normalization type
-         [2, 20, 3], ['tanh', 'sig'], ['normal', [0, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['std',  # data normalization type
-         [2, 20, 3], ['tanh', 'sig'], ['normal', [0, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['abs',  # data normalization type
-         [2, 20, 3], ['tanh', 'sig'], ['uniform', [-1, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['std',  # data normalization type
-         [2, 20, 3], ['tanh', 'sig'], ['uniform', [-1, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['abs',  # data normalization type
-         [2, 20, 3], ['tanh', 'sig'], ['normal', [-1, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
-
-    hyperparameters.append(
-        ['std',  # data normalization type
-         [2, 20, 3], ['tanh', 'sig'], ['normal', [-1, 1]],  # layers, functions, distribution and scale
-         0.05, 0.05,  # aplha, momentum
-         97, 500, 70,  # min_accuracy, max_epoch, min_delay_expectancy
-         30, 0.66, 0.002])  # q_size, raised_err_threashold, acc_err_threshold
 
 
     date_time = datetime.datetime.now()
-    # file_name = 'D://skola//NNET//source//zadanie1_results//validation_results_{:4d}_{:2d}_{:2d}__{:2d}_{:2d}_{:2d}.csv' \
-    #     .format(date_time.year, date_time.month, date_time.day, date_time.hour, date_time.minute, date_time.second)
     file_name = 'D://skola//NNET//source//zadanie1_results//validation_results_add.csv' \
         .format(date_time.year, date_time.month, date_time.day, date_time.hour, date_time.minute, date_time.second)
-    file = open(file_name, 'w', newline='')
+    file = open(file_name, 'a', newline='')
     writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(['model', 'data_normalization', 'layers', 'functions', 'distribution',
-                     'aplha', 'momentum', 'min_accuracy', 'max_epoch', 'min_delay_expectancy',
-                     'q_size', 'raised_err_threashold', 'acc_err_threshold',
-                     'mean_valid_CE', 'mean_valid_RE', 'best_valid_CE', 'best_valid_RE',
-                     'mean_epochs'])
+    # writer.writerow(['model', 'data_normalization', 'layers', 'functions', 'distribution',
+    #                  'aplha', 'momentum', 'min_accuracy', 'max_epoch', 'min_delay_expectancy',
+    #                  'q_size', 'raised_err_threashold', 'acc_err_threshold',
+    #                  'mean_valid_CE', 'mean_valid_RE', 'best_valid_CE', 'best_valid_RE',
+    #                  'mean_epochs'])
     # print(1/0)
 
     # loop the models setups
@@ -204,8 +111,6 @@ if __name__ == '__main__':
         pool = mp.Pool(processes=4)  # removing processes argument makes the code run on all available cores
         validation_results = np.array(pool.starmap(parallel_cross_validation,
                                                    zip(np.arange(10), repeat([split, train_inputs, train_labels, i, params]))))
-        # print(validation_results)
-        # print(validation_results.shape)
 
         # mean from results
         means = np.mean(validation_results, axis=0)
@@ -222,55 +127,10 @@ if __name__ == '__main__':
                          params[9], params[10], params[11],
                          mean_CE, mean_RE, best_CE, best_RE, mean_epochs])
 
+    file.close()
 
 
-    # read csv, get best hyperparameters, create model like that and test on test data
-    # results = np.genfromtxt('validation_results_2017_10_30__15_ 4_21.csv', dtype=None, skip_header=1)
-    # df = pandas.DataFrame.from_csv('validation_results_2017_10_30__15_ 4_21.csv', sep=',')
-    # results = df.values # the array you are interested in
-    # print(type(results))
-    # print(1/0)
 
-    # ## load data
-    # train_inputs_org = np.loadtxt('2d.trn.dat', skiprows=1, usecols=(0, 1)).T
-    # train_labels_org = np.loadtxt('2d.trn.dat', dtype='S20', skiprows=1, usecols=(2)).astype(str).T
-    # train_labels_org = labels_to_nums(train_labels_org)
-    # test_inputs_org = np.loadtxt('2d.tst.dat', skiprows=1, usecols=(0, 1)).T
-    # test_labels_org = np.loadtxt('2d.tst.dat', dtype='S20', skiprows=1, usecols=(2)).astype(str).T
-    # test_labels_org = labels_to_nums(test_labels_org)
-    #
-    # # normalize data with method from parameters
-    # norm_func = get_normalize_func(params[0])
-    # train_inputs = train_inputs_org
-    # train_inputs[0] = norm_func(train_inputs[0])
-    # train_inputs[1] = norm_func(train_inputs[1])
-    # train_labels = train_labels_org
-    # test_inputs = train_inputs_org
-    # test_inputs = norm_func(test_inputs)
-    # test_labels = test_labels_org
-    #
-    # # create model and train
-    # model = MLPClassifier(parameters[1], parameters[2], parameters[3],
-    #                       model_ID=model_ID, split_ID=split_ID)
-    # trainCEs, trainREs, validCE, validRE, epochs = model.train(train_inputs, train_labels, None, None,
-    #                                                            alpha=parameters[4],
-    #                                                            momentum=parameters[5],
-    #                                                            min_accuracy=0,
-    #                                                            max_epoch=#mean from csv,
-    #                                                            min_delay_expectancy=100000,
-    #                                                            q_size=0,
-    #                                                            raised_err_threashold=100,
-    #                                                            acc_err_threshold=100,
-    #                                                            trace_text=True, trace_plots=False, trace_interval=10)
-    # testCE, testRE = model.test(test_inputs, test_labels)
-    #
-    # # test and write to csv
-    # testCE, testRE = model.test(test_inputs, test_labels)
-    # print('Final testing error: CE = {:6.2%}, RE = {:.5f}'.format(testCE, testRE))
-    #
-    # plot_both_errors(trainCEs, trainREs, testCE, testRE, block=False)
-
-    # calculate a confusion matrix.
 
 
 

@@ -33,6 +33,15 @@ class MLPClassifier(MLP):
         RE = np.sum(self.cost(targets,outputs)) / inputs.shape[1]
         return CE, RE
 
+    def test2(self, inputs, labels):
+        _, outputs = self.forward(inputs)
+        outputs = outputs[-1]
+        targets = onehot_encode(labels, self.n_classes)
+        predicted = onehot_decode(outputs)
+        CE = np.sum(labels != predicted) / inputs.shape[1] #TODO mean
+        RE = np.sum(self.cost(targets,outputs)) / inputs.shape[1]
+        return CE, RE, predicted
+
 
     ## training
 
@@ -105,30 +114,35 @@ class MLPClassifier(MLP):
             if (validation_inputs is not None and validation_labels is not None):
                 term_min_delay, term_acc_err, term_raised_err, vCE, vRE = self.early_stopping(ep, validation_inputs, validation_labels, trace_text)
 
+
+            if trace_text:
+                print(';')
+
             # consider terminating only if accuracy is bigger than minimal accuracy.
             # need to convert min accuracy to max classification error
-            if vCE <= (100-self.min_accuracy)/100:
-                if term_min_delay:
-                    print('Training terminated in: Model = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
-                          'due inability to reach new minimum'.format(self.model_ID, ep, self.best_epoch))
-                    self.weights = self.best_weights
-                    break
-                if term_acc_err:
-                    print('Training terminated in: Model = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
-                          'due to accumulated error'.format(self.model_ID, ep, self.best_epoch))
-                    self.weights = self.best_weights
-                    break
-                if term_raised_err:
-                    print('Training terminated in: Model = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
-                          'due to raised error'.format(self.model_ID, ep, self.best_epoch))
-                    self.weights = self.best_weights
-                    break
+            if (validation_inputs is not None and validation_labels is not None):
+                if vCE <= (100-self.min_accuracy)/100:
+                    if term_min_delay:
+                        self.weights = self.best_weights
+                        print('Training terminated in: Split = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
+                              'due to inability to reach new minimum'.format(self.split_ID, ep, self.best_epoch))
+                        break
+                    if term_acc_err:
+                        self.weights = self.best_weights
+                        print('Training terminated in: Split = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
+                              'due to accumulated error'.format(self.split_ID, ep, self.best_epoch))
+                        break
+                    if term_raised_err:
+                        self.weights = self.best_weights
+                        print('Training terminated in: Split = {:1d}, Epoch = {:d}, Best Epoch = {:d} '
+                              'due to raised error'.format(self.split_ID, ep, self.best_epoch))
+                        break
 
 
         if trace_plots:
             ioff()
 
-        print()
+        # if (validation_inputs is not None and validation_labels is not None):
 
         return CEs, REs, self.best_vCE, self.best_vRE, self.best_epoch
 

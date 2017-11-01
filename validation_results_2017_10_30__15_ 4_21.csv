@@ -1,2 +1,0 @@
-model,data_normalization,layers,functions,distribution,aplha,momentum,min_accuracy,max_epoch,min_delay_expectancy,q_size,raised_err_threashold,acc_err_threshold,mean_valid_CE,mean_valid_RE,best_valid_CE,best_valid_RE,mean_epochs
-0,abs,"[2, 20, 6, 3]","['tanh', 'sig', 'lin']","['uniform', [0, 1]]",0.05,0.1,97,500,50,30,0.66,0.001,0.027125,0.0801360304063,0.0225,0.051102588803,161.6
